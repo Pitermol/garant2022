@@ -1,0 +1,26 @@
+{\rtf1\ansi\ansicpg1251\deff0\deflang1049\deflangfe1049 {\fonttbl{\f0\fnil\fcharset204 Arial;}{\f1\fnil\fcharset204 Courier New;}{\f2\fnil\fcharset2 Symbol;}{\f3\fnil Wingdings;}{\f4\fnil\fcharset204 Times New Roman CYR;}{\f5\fnil\fcharset204 Times New Roman;}}
+{\colortbl;\red0\green0\blue0;\red0\green0\blue255;\red0\green255\blue255;\red0\green255\blue0;\red255\green0\blue255;\red255\green0\blue0;\red255\green255\blue0;\red255\green255\blue255;\red0\green0\blue128;\red0\green128\blue128;\red0\green128\blue0;\red128\green0\blue128;\red128\green0\blue0;\red128\green128\blue0;\red128\green128\blue128;\red192\green192\blue192;\red38\green40\blue47;\red16\green107\blue190;\red53\green56\blue66;\red240\green240\blue240;}{\stylesheet{\fi720\qj\hyphpar1\sb0\sa0 \f4\fs24 \snext0 Normal;}
+{\*\cs26\b1\cf17 \snext0\sbasedon65552 Цветовое выделение;}
+{\*\cs24\b0\cf18 \snext0\sbasedon26 Гипертекстовая ссылка;}
+{\s1\qc\hyphpar1\sb108\sa108 \f4\fs24\b1\cf17 \snext0\sbasedon0 heading 1;}
+{\s2\qc\hyphpar1\sb108\sa108 \f4\fs24\b1\cf17 \snext0\sbasedon1 heading 2;}
+{\s3\qc\hyphpar1\sb108\sa108 \f4\fs24\b1\cf17 \snext0\sbasedon2 heading 3;}
+{\s30\fi0\li170\ri170\ql\hyphpar1\sb0\sa0 \f4\fs24 \snext0\sbasedon0 Текст (справка);}
+{\s25\fi0\li170\qj\hyphpar1\sb75\sa0 \f4\fs24\cf19 \snext0\sbasedon30 Комментарий;}
+{\s33\qj\hyphpar1\sb0\sa0 \f4\fs24 \snext0\sbasedon0 Нормальный (таблица);}
+{\*\cs65552\f4\fs24 \snext0\sbasedon65552 Цветовое выделение для Текст;}
+{\s65553\qc\hyphpar1\sb0\sa0 \f5\fs20 \snext0\sbasedon0 header;}
+{\s65554\ql\hyphpar1\sb0\sa0 \f5\fs20 \snext0\sbasedon0 footer;}
+}
+{\*\listtable{\list\listtemplateid-15593640\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\leveltext\leveltemplateid68747265\'01\u-3913 ?;}{\levelnumbers;}\f2\hres0\chhres0 \fi-360\li720\lin720 }{\listname ;}\listid1859274983}}{\*\listoverridetable{\listoverride\listid1859274983\listoverridecount0\ls1}}
+{\*\generator ГАРАНТ - утилита поддержки рендеринга EVD Версия 2020.5.31.0 от 9/10/2021.}{\info {\author НПП "Гарант-Сервис"}{\company НПП "Гарант-Сервис"}{\doccomm Документ экспортирован из системы ГАРАНТ}}\paperw11900\paperh16800 \margl800 \margt1440 \margr800 \margb1440
+{\header \pard\plain \ltrpar \pard\plain \s65553\fi0\li0\qc\hyphpar1\sb0\sa0 \f5\fs20 \fi0\li0\ql Постановление администрации Ингарского сельского поселения от 7 июля 2022 г. N 59 "О внесении изменений в…\par\pard
+}
+
+{\footer \ltrpar \trowd \irow0\irowband0\trftsWidth2\trwWidth5000\trftsWidthB3\trftsWidthA3\trautofit1\trgaph0\trleft0\trbrdrt\brdrs\brdrw10\trbrdrl\brdrs\brdrw10\trbrdrb\brdrs\brdrw10\trbrdrr\brdrs\brdrw10
+\clvertalt\cellx3433\cltxlrtb\clftsWidth2\clwWidth1666\clshdrawnil \clvertalt\cellx6866\cltxlrtb\clftsWidth2\clwWidth1666\clshdrawnil \clvertalt\cellx10299\cltxlrtb\clftsWidth2\clwWidth1666\clshdrawnil \pard\plain \intbl\itap1 \s65554\fi0\li0\ql\hyphpar1\sb0\sa0 \f5\fs20 \fi0\li0 {\field {\*\fldinst DATE  \\@ "dd.MM.yyyy"  \\* MERGEFORMAT }} \cell
+\pard\plain \intbl\itap1 \s65554\fi0\li0\ql\hyphpar1\sb0\sa0 \f5\fs20 \fi0\li0\qc Система ГАРАНТ\cell
+\pard\plain \intbl\itap1 \s65554\fi0\li0\ql\hyphpar1\sb0\sa0 \f5\fs20 \fi0\li0\qr {\field {\*\fldinst PAGE  \\* MERGEFORMAT }}/\pard\plain \intbl\itap1 \s65554\fi0\li0\ql\hyphpar1\sb0\sa0 \f5\fs20 \fi0\li0\qr {\field {\*\fldinst NUMPAGES  \\* Arabic  \\* MERGEFORMAT }}\cell
+\trowd \irow0\irowband0\trftsWidth2\trwWidth5000\trftsWidthB3\trftsWidthA3\trautofit1\trgaph0\trleft0\trbrdrt\brdrs\brdrw10\trbrdrl\brdrs\brdrw10\trbrdrb\brdrs\brdrw10\trbrdrr\brdrs\brdrw10
+\clvertalt\cellx3433\cltxlrtb\clftsWidth2\clwWidth1666\clshdrawnil \clvertalt\cellx6866\cltxlrtb\clftsWidth2\clwWidth1666\clshdrawnil \clvertalt\cellx10299\cltxlrtb\clftsWidth2\clwWidth1666\clshdrawnil \row
+\pard\plain }
