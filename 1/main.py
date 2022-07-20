@@ -8,21 +8,22 @@ from dataclasses import dataclass
 import requests
 from tika import parser
 import fitz
+from typing import List
 
 
 @dataclass
-class Document:
-    num: str
-    index: str
-    link: str
-    name: str
-    is_active_then: bool
-    is_active_now: bool
-    context: str
-    date: str
+class Document:  # Создается класс для удобного хранения данных о документе в виде объекта
+    num: str  # Номер по счету
+    index: str  # $topic
+    link: str  # Ссылка
+    name: str  # Названи документа
+    is_active_then: bool  # Действителен ли на данную дату
+    is_active_now: bool  # Действителен ли на сегодня
+    context: str  # Контекст
+    date: str  # Дата для "is_active_then"
 
 
-class checkDocsRelevance:
+class checkDocsRelevance:  # Основной класс с методами для формирования списка и HTML - таблицы
     def __init__(self, name, date):
         self.date = date
         self.reader = None
@@ -31,30 +32,20 @@ class checkDocsRelevance:
         self.name = name
         self.type = self.name.split(".")[-1]
 
-    def open_doc(self):
-        if self.type == "pdf":
+    def open_doc(self):  # Функция для открытия документа и его считывания
+        if self.type == "pdf":  # Если формат - PDF
             with fitz.open(f'input/{self.name}') as doc:
                 text = ""
                 for page in doc:
                     text += page.get_text()
             self.text = text
-            # self.file = open(f'input/{self.name}', "rb")
-            # self.reader = PyPDF2.PdfFileReader(self.file)
-            # for page in range(self.reader.numPages):
-            #     try:
-            #         page_text = self.reader.getPage(page).extractText()
-            #         self.text += " " + page_text
-            #     except:
-            #         print(page)
-            #         continue
-            # print(self.text)
 
             self.text = self.text.replace("\n", " ")
             self.text = self.text.replace("\t", " ")
             self.text = self.text.strip()
             while "  " in self.text:
                 self.text = self.text.replace("  ", " ")
-        elif self.type == "docx":
+        elif self.type == "docx":  # Если формат - DOCX
             self.file = docx.Document(f'input/{self.name}')
             for para in range(len(self.file.paragraphs)):
                 self.text += " " + self.file.paragraphs[para].text
@@ -64,7 +55,7 @@ class checkDocsRelevance:
             self.text = self.text.strip()
             while "  " in self.text:
                 self.text = self.text.replace("  ", " ")
-        elif self.type == "txt":
+        elif self.type == "txt":  # Если формат - TXT
             self.file = open(f'input/{self.name}', "r")
             self.text = self.file.read()
 
@@ -74,14 +65,14 @@ class checkDocsRelevance:
             while "  " in self.text:
                 self.text = self.text.replace("  ", " ")
 
-    def get_text(self) -> str:
+    def get_text(self) -> str:  # Возвращает полученный из документа текст
         return self.text
 
-    def make_doc_list(self):
-        self.open_doc()
+    def make_doc_list(self) -> List[Document]:  # Метод для создания списка из экземпляров класса "Document"
+        self.open_doc()  # Получение текста на вход
         requestslist = []
-        url = "https://api.garant.ru/v1/find-hyperlinks"
-        headers = {
+        url = "https://api.garant.ru/v1/find-hyperlinks"  # Ссылка для запроса
+        headers = {  # Заголовки для запроса
             'Accept': 'application/json',
             'Content-type': 'application/json',
             'Authorization': 'Bearer f4e1a77c651811eab20b0050568d72f0'
@@ -90,15 +81,15 @@ class checkDocsRelevance:
         print(self.text)
         text = ""
         ind = 0
-        while ind < len(self.text):
+        while ind < len(self.text):  # Разделение текста на куски по 2000 символов
             ind += 2000
             cur = self.text[ind - 2000:ind]
             payload = json.dumps({
                 "text": cur,
                 "baseUrl": "https://internet.garant.ru"
             })
-            response = requests.request("POST", url, headers=headers, data=payload)
-            # print(response.text)
+            response = requests.request("POST", url, headers=headers, data=payload)  # Запрос для проставления ссылок в отрывке текста
+
             html = response.json()["text"]
             text += html
 
@@ -117,10 +108,10 @@ class checkDocsRelevance:
         htmls = re.split("<a href=\"|</a>", html)
         # print(html)
 
-        for i in range(1, len(htmls), 2):
+        for i in range(1, len(htmls), 2):  # Поиск всех документов, извлечение ссылок, их номеров в системе Гарант и контекста
             htmlc = htmls[i]
             htmlc = re.split('"', htmlc)
-            link = htmlc[0]
+            link = htmlc[0]  # Ссылка
             try:
                 cur_context = htmls[i - 1][-50:]
             except:
@@ -136,12 +127,13 @@ class checkDocsRelevance:
                     cur_context += htmls[i + 1]
 
             cur_context = cur_context.replace("<p>", "")
-            cur_context = cur_context.replace("</p>", "")
+            cur_context = cur_context.replace("</p>", "")  # Контекст
+
             htmlc = str(htmlc[0])
             htmlc = htmlc.split('document/')
             htmlc = htmlc[1]
             htmlc = htmlc.split('/')
-            number = htmlc[0]
+            number = htmlc[0]  # Номер в системе Гарант
 
             url = "https://api.garant.ru/v1/find-modified"
 
@@ -152,7 +144,7 @@ class checkDocsRelevance:
                 'Accept': 'application/json'
             }
 
-            response = requests.post(url, headers=headers, data=payload).json()["topics"]
+            response = requests.post(url, headers=headers, data=payload).json()["topics"]  # Запрос для получения сведений об акутальности документа на данную дату
 
             if len(response) == 0:
                 is_active_then = True
@@ -166,7 +158,7 @@ class checkDocsRelevance:
                 'Authorization': 'Bearer f4e1a77c651811eab20b0050568d72f0',
             }
 
-            response1 = requests.get(url1, headers=headers1).json()
+            response1 = requests.get(url1, headers=headers1).json()  # Запрос для получения названия документа и сведений об актуальности на сегодня
             # print(response1)
             namme = response1['name']
             is_active_now = response1['status']
@@ -175,12 +167,12 @@ class checkDocsRelevance:
             else:
                 is_active_now = False
 
-            a = Document(str(i // 2 + 1), number, link, namme, is_active_then, is_active_now, cur_context, self.date)
+            a = Document(str(i // 2 + 1), number, link, namme, is_active_then, is_active_now, cur_context, self.date)  # Создание объекта документа
             requestslist.append(a)
 
         return requestslist
 
-    def create_table(self):
+    def create_table(self):  # Метод для формирования HTML - Файла с таблицой документов
         data = self.make_doc_list()
         # print(data)
 
@@ -222,10 +214,10 @@ class checkDocsRelevance:
         </html>''')
         html = template.render(docs=data, given_date=self.date)
         # print(html)
-        with open("output/template.html", "w", encoding='utf-8') as f:
+        with open("output/template.html", "w", encoding='utf-8') as f:  # Запись в файл "output/template.html"
             f.write(html)
         f.close()
 
 
-obj = checkDocsRelevance("test.pdf", "2021-10-25")
-obj.create_table()
+obj = checkDocsRelevance("test.pdf", "2021-10-25")  # Создание экземпляра основного класса
+obj.create_table()  # Вызов метода для формирования таблицы
