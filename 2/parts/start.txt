@@ -14,7 +14,7 @@
 }
 {\*\listtable{\list\listtemplateid-15593640\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\leveltext\leveltemplateid68747265\'01\u-3913 ?;}{\levelnumbers;}\f2\hres0\chhres0 \fi-360\li720\lin720 }{\listname ;}\listid1859274983}}{\*\listoverridetable{\listoverride\listid1859274983\listoverridecount0\ls1}}
 {\*\generator ГАРАНТ - утилита поддержки рендеринга EVD Версия 2020.5.31.0 от 9/10/2021.}{\info {\author НПП "Гарант-Сервис"}{\company НПП "Гарант-Сервис"}{\doccomm Документ экспортирован из системы ГАРАНТ}}\paperw11900\paperh16800 \margl800 \margt1440 \margr800 \margb1440
-{\header \pard\plain \ltrpar \pard\plain \s65553\fi0\li0\qc\hyphpar1\sb0\sa0 \f5\fs20 \fi0\li0\ql Постановление администрации Ингарского сельского поселения от 7 июля 2022 г. N 59 "О внесении изменений в…\par\pard
+{\header \pard\plain \ltrpar \pard\plain \s65553\fi0\li0\qc\hyphpar1\sb0\sa0 \f5\fs20 \fi0\li0\ql Постановление о внесении изменений в…\par\pard
 }
 
 {\footer \ltrpar \trowd \irow0\irowband0\trftsWidth2\trwWidth5000\trftsWidthB3\trftsWidthA3\trautofit1\trgaph0\trleft0\trbrdrt\brdrs\brdrw10\trbrdrl\brdrs\brdrw10\trbrdrb\brdrs\brdrw10\trbrdrr\brdrs\brdrw10
@@ -24,3 +24,6 @@
 \trowd \irow0\irowband0\trftsWidth2\trwWidth5000\trftsWidthB3\trftsWidthA3\trautofit1\trgaph0\trleft0\trbrdrt\brdrs\brdrw10\trbrdrl\brdrs\brdrw10\trbrdrb\brdrs\brdrw10\trbrdrr\brdrs\brdrw10
 \clvertalt\cellx3433\cltxlrtb\clftsWidth2\clwWidth1666\clshdrawnil \clvertalt\cellx6866\cltxlrtb\clftsWidth2\clwWidth1666\clshdrawnil \clvertalt\cellx10299\cltxlrtb\clftsWidth2\clwWidth1666\clshdrawnil \row
 \pard\plain }
+\pard\plain \s1\qc\hyphpar1\sb108\sa108 \f4\fs24\b1\cf17 {\field{\*\fldinst {HYPERLINK "@@@link_new@@@"}}{\fldrslt {\cs24\b0\cf18 @@@name_new@@@}}}\par\pard
+\pard\plain \s25\fi0\li170\qj\hyphpar1\sb75\sa0 \f4\fs24\cf19 \fs16\cf1 \chshdng0\chcfpat0\chcbpat20 ГАРАНТ:\par\pard
+\pard\plain \s25\fi0\li170\qj\hyphpar1\sb75\sa0 \f4\fs24\cf19  \chshdng0\chcfpat0\chcbpat20 См. {\field{\*\fldinst {HYPERLINK "@@@link_old@@@"}}{\fldrslt {\cs24\b0\cf18 @@@name_old@@@}}}\par\pard

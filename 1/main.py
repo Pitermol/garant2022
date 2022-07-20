@@ -1,5 +1,6 @@
 import json
 import re
+import configparser
 
 import PyPDF2
 import docx
@@ -31,6 +32,9 @@ class checkDocsRelevance:  # Основной класс с методами д�
         self.text = ""
         self.name = name
         self.type = self.name.split(".")[-1]
+        config = configparser.ConfigParser()
+        config.read('settings.ini')
+        self.token = config["api"]["token"]
 
     def open_doc(self):  # Функция для открытия документа и его считывания
         if self.type == "pdf":  # Если формат - PDF
@@ -75,7 +79,7 @@ class checkDocsRelevance:  # Основной класс с методами д�
         headers = {  # Заголовки для запроса
             'Accept': 'application/json',
             'Content-type': 'application/json',
-            'Authorization': 'Bearer f4e1a77c651811eab20b0050568d72f0'
+            'Authorization': f'Bearer {self.token}'
         }
 
         print(self.text)
@@ -139,7 +143,7 @@ class checkDocsRelevance:  # Основной класс с методами д�
 
             payload = json.dumps({"topics": [number], "modDate": self.date})
             headers = {
-                'Authorization': 'Bearer f4e1a77c651811eab20b0050568d72f0',
+                'Authorization': f'Bearer {self.token}',
                 'Content-type': 'application/json',
                 'Accept': 'application/json'
             }
@@ -155,7 +159,7 @@ class checkDocsRelevance:  # Основной класс с методами д�
             headers1 = {
                 'Accept': 'application/json',
                 'Content-type': 'application/json',
-                'Authorization': 'Bearer f4e1a77c651811eab20b0050568d72f0',
+                'Authorization': f'Bearer {self.token}',
             }
 
             response1 = requests.get(url1, headers=headers1).json()  # Запрос для получения названия документа и сведений об актуальности на сегодня

@@ -82,6 +82,9 @@ class docGeneration:
                             place.append("Раздел " + self.orig_text[ind].split(".")[0] + " ")
                     place = place[::-1]
                     doc_name = self.doc_name
+                    with open("parts/start.txt", "r", encoding="utf-8") as f:
+                        ready = f.read()
+                    f.close()
 
                 else:
                     pass
@@ -90,16 +93,16 @@ class docGeneration:
 # obj = docGeneration("Оригинал.rtf", "Новый документ.rtf")
 # obj.main()
 
-# with open("../1/input/file.docx", "r", encoding='utf-8') as f:
-#     text = f.read()
-# f.close()
+with open("output/Изменяющий акт.rtf", "r", encoding='cp1251') as f:
+    text = f.read()
+f.close()
 # text = rtf_to_text(text)
-# print(text)
+print(text)
 
-text = ""
-file = docx.Document("../1/input/file.docx")
-for para in file.paragraphs:
-    text += para.text + "\n\t"
+# text = ""
+# file = docx.Document("../1/input/file.docx")
+# for para in file.paragraphs:
+#     text += para.text + "\n\t"
 
 
 with open("out.txt", "w", encoding='utf-8') as f:
