@@ -11,6 +11,15 @@ striprtf = "*"
 jinja2 = "*"
 tika = "*"
 pymupdf = "*"
+htmldocx = "*"
+aspose-words = "*"
+pywin32 = "*"
+pypandoc = "*"
+pdfkit = "*"
+weasyprint = "*"
+pyqt6 = "*"
+pyqt5 = "*"
+pyqtwebengine = "*"
 
 [dev-packages]
 

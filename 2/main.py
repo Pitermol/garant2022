@@ -1,29 +1,58 @@
+import time
+
+from PyQt5.QtCore import QUrl
+from PyQt5.QtWidgets import QApplication
 from striprtf.striprtf import rtf_to_text
 import difflib as df
+from docx import Document
+from docx.shared import Pt, RGBColor
 import docx
+import jinja2
+from dataclasses import dataclass
+import sys
+from PyQt5 import QtCore, QtWidgets, QtWebEngineWidgets
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.opc.constants import RELATIONSHIP_TYPE
+from docx.oxml.shared import OxmlElement
 
 
 class docGeneration:
     def __init__(self, name_orig, name_ready):
         self.orig_text = ""
         self.ready_text = ""
-        self.doc_name = ""
-        self.name_orig = name_orig
-        self.name_ready = name_ready
+        self.name_old = ""
+        self.name_changing = ""
+        self.name_new = ""
+        self.type = ""
+        self.name_changing = ""
+        self.new_date = ""
+        self.filename_orig = name_orig
+        self.filename_ready = name_ready
 
     def set_orig_text(self):
-        with open(f"input/{self.name_orig}", "r") as f:
+        with open(f"input/{self.filename_orig}", "r") as f:
             text = f.read()
         f.close()
-        self.doc_name = text.split("\n")[24]
+        self.name_old = text.split("\n")[24].split("{\\cs24\\b0\\cf18 ")[1].split("}}}")[0]
+        if "постановление" in self.name_old.lower():  # Всегда ли тип документа это первые слова?
+            self.type = "Постановление"
+        elif "закон" in self.name_old.lower():
+            self.type = "Закон"
+        elif "указ" in self.name_old:
+            self.type = "Указ"
+        else:
+            self.type = "Неизвестный тип"
 
         self.orig_text = rtf_to_text(text, errors='ignore').replace("\xa0", " ").split("\n")
 
     def set_ready_text(self):
-        with open(f"input/{self.name_ready}", "r") as f:
+        with open(f"input/{self.filename_ready}", "r") as f:
             text = f.read()
         f.close()
 
+        self.name_new = text.split("\n")[24].split("{\\cs24\\b0\\cf18 ")[1].split("}}}")[0]
+        self.name_changing = f"{self.name_new.split(' от ')[0]} от {self.new_date} "
+        self.new_date = text.split(" от ")[1].split(" г. ")[0] + " г."
         self.ready_text = rtf_to_text(text, errors='ignore').replace("\xa0", " ").split("\n")
 
     def get_orig_text(self):
@@ -75,7 +104,8 @@ class docGeneration:
                             if difference.split(")")[0].isnumeric():
                                 place.append("Подпункт " + difference.split(")")[0])
                     ind = self.orig_text.index(difference)
-                    while ind != 1 and not (self.orig_text[ind] == self.orig_text[ind - 2] == "\n" and self.orig_text[ind - 1] != "\n"):
+                    while ind != 1 and not (
+                            self.orig_text[ind] == self.orig_text[ind - 2] == "\n" and self.orig_text[ind - 1] != "\n"):
                         ind -= 1
                     if ind != 1:
                         if "." in self.orig_text[ind].split()[0] and self.orig_text[ind].split(".")[0].isnumeric():
@@ -89,22 +119,73 @@ class docGeneration:
                 else:
                     pass
 
+    def create_docx(self, name_changing="", name_new="", name_old="", link_changing="", type="", new_date="", changes=None):
+        if changes is None:
+            changes = []
+        with open("double.html", "r", encoding="utf-8") as f:
+            html = f.read()
+        f.close()
+        html = html.replace("@@@name_new@@@", name_new)
+        html = html.replace("@@@name_old@@@", name_old)
+        html = html.replace("@@@link_changing@@@", link_changing)
+        html = html.replace("@@@type@@@", type)
+        html = html.replace("@@@new_date@@@", new_date)
+        html = html.replace("@@@link_changing@@@", "http://municipal.garant.ru/document/redirect/198237358/0")
+
+        body = []
+        if type.lower() == "постановление":
+            html = html.replace("@@@ability_doc_if_needed@@@", "В соответствии с @@@connected_doc@@@ @@@authority@@@")
+            html = html.replace("@@@start_word_if_needed@@@", "ПОСТАНОВЛЯЕТ")
+            body.append(
+                f"<p lang='ru-RU' class='western' style='line-height: 100%; text-indent: 0.39in; margin-bottom: 0in'>\n1. Внести в {name_old} следующие изменения: \n</p>\n")
+            for i, change in enumerate(changes, 1):
+                body.append(
+                    f"<p lang='ru-RU' class='western' style='line-height: 100%; text-indent: 0.39in; margin-bottom: 0in'>\n1.{str(i)}. {change}\n</p>\n")
+            body.append(
+                "<p lang='ru-RU' class='western' style='line-height: 100%; text-indent: 0.39in; margin-bottom: 0in'>\n2. Настоящее постановление вступает в силу со дня подписания. \n</p>\n")
+        elif type.lower() == "закон":
+            for i, change in enumerate(changes, 1):
+                body.append(
+                    f"<p lang='ru-RU' class='western' style='font-weight: bold; line-height: 100%; text-indent: "
+                    f"0.39in; margin-bottom: 0in'>Статья {str(i)}</p>\n")
+                for j, cur_change in enumerate(change):
+                    body.append(f"<p lang='ru-RU' class='western' style='line-height: 100%; text-indent: "
+                                f"0.39in; margin-bottom: 0in'>Статья {str(i)}.{str(j)} {change}</p>\n")
+
+        html = "".join(body)
+        with open("test1.html", "w", encoding="utf-8") as f:
+            f.write(html)
+        f.close()
+
+
+def html2pdf():
+    app = QtWidgets.QApplication(sys.argv)
+    loader = QtWebEngineWidgets.QWebEnginePage()
+    loader.setZoomFactor(1)
+
+    def handle_print_finished(filename, status):
+        print("finished", filename, status)
+        QtWidgets.QApplication.quit()
+
+    def handle_load_finished(status):
+        if status:
+            loader.printToPdf("test.pdf")
+        else:
+            print("Failed")
+            QtWidgets.QApplication.quit()
+
+    loader.pdfPrintingFinished.connect(handle_print_finished)
+    loader.loadFinished.connect(handle_load_finished)
+    loader.load(QtCore.QUrl.fromLocalFile("C:\\Users\\admin\\PycharmProjects\\garant2022\\2\\test1.html"))
+
+    app.exec()
+    return
+
+
+with open("input/Оригинал.rtf", "r", encoding="cp1251") as f:
+    text = f.read()
+f.close()
+print(text.split("\n")[24].split("{\\cs24\\b0\\cf18 ")[1].split("}}}")[0])
 
 # obj = docGeneration("Оригинал.rtf", "Новый документ.rtf")
 # obj.main()
-
-with open("output/Изменяющий акт.rtf", "r", encoding='cp1251') as f:
-    text = f.read()
-f.close()
-# text = rtf_to_text(text)
-print(text)
-
-# text = ""
-# file = docx.Document("../1/input/file.docx")
-# for para in file.paragraphs:
-#     text += para.text + "\n\t"
-
-
-with open("out.txt", "w", encoding='utf-8') as f:
-    f.write(text)
-f.close()

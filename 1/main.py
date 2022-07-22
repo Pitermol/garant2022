@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import configparser
 
@@ -92,7 +93,8 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 "text": cur,
                 "baseUrl": "https://internet.garant.ru"
             })
-            response = requests.request("POST", url, headers=headers, data=payload)  # Запрос для проставления ссылок в отрывке текста
+            response = requests.request("POST", url, headers=headers,
+                                        data=payload)  # Запрос для проставления ссылок в отрывке текста
 
             html = response.json()["text"]
             text += html
@@ -112,7 +114,8 @@ class checkDocsRelevance:  # Основной класс с методами д�
         htmls = re.split("<a href=\"|</a>", html)
         # print(html)
 
-        for i in range(1, len(htmls), 2):  # Поиск всех документов, извлечение ссылок, их номеров в системе Гарант и контекста
+        for i in range(1, len(htmls),
+                       2):  # Поиск всех документов, извлечение ссылок, их номеров в системе Гарант и контекста
             htmlc = htmls[i]
             htmlc = re.split('"', htmlc)
             link = htmlc[0]  # Ссылка
@@ -148,7 +151,8 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 'Accept': 'application/json'
             }
 
-            response = requests.post(url, headers=headers, data=payload).json()["topics"]  # Запрос для получения сведений об акутальности документа на данную дату
+            response = requests.post(url, headers=headers, data=payload).json()[
+                "topics"]  # Запрос для получения сведений об акутальности документа на данную дату
 
             if len(response) == 0:
                 is_active_then = True
@@ -162,7 +166,8 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 'Authorization': f'Bearer {self.token}',
             }
 
-            response1 = requests.get(url1, headers=headers1).json()  # Запрос для получения названия документа и сведений об актуальности на сегодня
+            response1 = requests.get(url1,
+                                     headers=headers1).json()  # Запрос для получения названия документа и сведений об актуальности на сегодня
             # print(response1)
             namme = response1['name']
             is_active_now = response1['status']
@@ -171,12 +176,13 @@ class checkDocsRelevance:  # Основной класс с методами д�
             else:
                 is_active_now = False
 
-            a = Document(str(i // 2 + 1), number, link, namme, is_active_then, is_active_now, cur_context, self.date)  # Создание объекта документа
+            a = Document(str(i // 2 + 1), number, link, namme, is_active_then, is_active_now, cur_context,
+                         self.date)  # Создание объекта документа
             requestslist.append(a)
 
         return requestslist
 
-    def create_table(self):  # Метод для формирования HTML - Файла с таблицой документов
+    def create_table(self, new_name):  # Метод для формирования HTML - Файла с таблицой документов
         data = self.make_doc_list()
         # print(data)
 
@@ -216,12 +222,23 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 </div>
             </body>
         </html>''')
-        html = template.render(docs=data, given_date=self.date)
+        html = template.render(docs=data, given_date=self.date)  # Формирование HTML
         # print(html)
-        with open("output/template.html", "w", encoding='utf-8') as f:  # Запись в файл "output/template.html"
+        with open(f"output/{new_name}.html", "w", encoding='utf-8') as f:  # Запись в файл "output/template.html"
             f.write(html)
         f.close()
 
 
-obj = checkDocsRelevance("test.pdf", "2021-10-25")  # Создание экземпляра основного класса
-obj.create_table()  # Вызов метода для формирования таблицы
+def start(date="2021-10-25"):  # Функция обработки множества файлов в папке input
+    input_files = os.listdir("input")  # Список входных файлов
+    for old_file in os.listdir("output"):
+        os.remove(os.path.join(os.path.abspath(os.path.dirname(__file__)) + "/output", old_file))  # Удаление всех старых файлов в папке output
+
+    for i, new_file in enumerate(input_files):  # Перебор входных файлов
+        obj = checkDocsRelevance(new_file, date)  # Создание экземпляра основного класса
+        obj.create_table(f"out_{str(i + 1)}")  # Вызов метода для формирования таблицы
+
+# obj = checkDocsRelevance("test.pdf", "2021-10-25")
+# obj.create_table("out")
+
+start()
