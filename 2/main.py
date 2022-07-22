@@ -69,6 +69,7 @@ class docGeneration:
         diff = list(diff)[2:]
         differences = []
         cur = []
+        changes = []
 
         for i in diff:
             if i[0] != "@":
@@ -110,16 +111,45 @@ class docGeneration:
                     if ind != 1:
                         if "." in self.orig_text[ind].split()[0] and self.orig_text[ind].split(".")[0].isnumeric():
                             place.append("Раздел " + self.orig_text[ind].split(".")[0] + " ")
-                    place = place[::-1]
-                    doc_name = self.doc_name
-                    with open("parts/start.txt", "r", encoding="utf-8") as f:
-                        ready = f.read()
-                    f.close()
+                    place = "".join(place[::-1])
 
+                    change = f"{place} {self.name_old} убрать {difference}"
+                    changes.append(change)
+
+                elif difference[0] == "+":
+                    difference = difference[1:]
+                    if difference.startswith("Статья") or difference.startswith("Пункт") or \
+                            difference.startswith("Глава") or difference.startswith("Раздел") \
+                            or difference.startswith("Часть"):
+                        place.append(difference.split()[:2])
+                    else:
+                        if "." in difference:
+                            if difference.split(".")[0].isnumeric():
+                                if difference.split(".")[1].isnumeric():
+                                    place.append(
+                                        "Подпункт " + difference.split(".")[0] + "." + difference.split(".")[1] + ".")
+                                else:
+                                    place.append(
+                                        "Пункт " + difference.split(".")[0] + ".")
+                        elif ")" in difference:
+                            if difference.split(")")[0].isnumeric():
+                                place.append("Подпункт " + difference.split(")")[0])
+                    ind = self.orig_text.index(difference)
+                    while ind != 1 and not (
+                            self.orig_text[ind] == self.orig_text[ind - 2] == "\n" and self.orig_text[ind - 1] != "\n"):
+                        ind -= 1
+                    if ind != 1:
+                        if "." in self.orig_text[ind].split()[0] and self.orig_text[ind].split(".")[0].isnumeric():
+                            place.append("Раздел " + self.orig_text[ind].split(".")[0] + " ")
+                    place = "".join(place[::-1])
+
+                    change = f"{place} {self.name_old} добавить {difference}"
+                    changes.append(change)
                 else:
                     pass
 
-    def create_docx(self, name_changing="", name_new="", name_old="", link_changing="", type="", new_date="", changes=None):
+    def create_docx(self, name_changing="", name_new="", name_old="", link_changing="", type="", new_date="",
+                    changes=None):
         if changes is None:
             changes = []
         with open("double.html", "r", encoding="utf-8") as f:
