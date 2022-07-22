@@ -3,14 +3,13 @@ import os
 import re
 import configparser
 
-import PyPDF2
 import docx
 import jinja2
 from dataclasses import dataclass
 import requests
-from tika import parser
 import fitz
-from typing import List
+from typing import List, Optional
+import logging
 
 
 @dataclass
@@ -36,50 +35,60 @@ class checkDocsRelevance:  # Основной класс с методами д�
         config = configparser.ConfigParser()
         config.read('settings.ini')
         self.token = config["api"]["token"]
+        self.url_make_links = config["api"]["url_make_links"]
+        self.accept = config["api"]["accept"]
+        self.content_type = config["api"]["content-type"]
+        self.links_base_url = config["api"]["links_base_url"]
+        self.url_get_modifications = config["api"]["url_get_modifications"]
+        self.url_get_doc_info = config["api"]["url_get_doc_info"]
 
     def open_doc(self):  # Функция для открытия документа и его считывания
-        if self.type == "pdf":  # Если формат - PDF
-            with fitz.open(f'input/{self.name}') as doc:
-                text = ""
-                for page in doc:
-                    text += page.get_text()
-            self.text = text
+        try:
+            if self.type == "pdf":  # Если формат - PDF
+                with fitz.open(f'input/{self.name}') as doc:
+                    text = ""
+                    for page in doc:
+                        text += page.get_text()
+                self.text = text
 
-            self.text = self.text.replace("\n", " ")
-            self.text = self.text.replace("\t", " ")
-            self.text = self.text.strip()
-            while "  " in self.text:
-                self.text = self.text.replace("  ", " ")
-        elif self.type == "docx":  # Если формат - DOCX
-            self.file = docx.Document(f'input/{self.name}')
-            for para in range(len(self.file.paragraphs)):
-                self.text += " " + self.file.paragraphs[para].text
+                self.text = self.text.replace("\n", " ")
+                self.text = self.text.replace("\t", " ")
+                self.text = self.text.strip()
+                while "  " in self.text:
+                    self.text = self.text.replace("  ", " ")
+            elif self.type == "docx":  # Если формат - DOCX
+                self.file = docx.Document(f'input/{self.name}')
+                for para in range(len(self.file.paragraphs)):
+                    self.text += " " + self.file.paragraphs[para].text
 
-            self.text = self.text.replace("\n", " ")
-            self.text = self.text.replace("\t", " ")
-            self.text = self.text.strip()
-            while "  " in self.text:
-                self.text = self.text.replace("  ", " ")
-        elif self.type == "txt":  # Если формат - TXT
-            self.file = open(f'input/{self.name}', "r")
-            self.text = self.file.read()
+                self.text = self.text.replace("\n", " ")
+                self.text = self.text.replace("\t", " ")
+                self.text = self.text.strip()
+                while "  " in self.text:
+                    self.text = self.text.replace("  ", " ")
+            elif self.type == "txt":  # Если формат - TXT
+                self.file = open(f'input/{self.name}', "r")
+                self.text = self.file.read()
 
-            self.text = self.text.replace("\n", " ")
-            self.text = self.text.replace("\t", " ")
-            self.text = self.text.strip()
-            while "  " in self.text:
-                self.text = self.text.replace("  ", " ")
+                self.text = self.text.replace("\n", " ")
+                self.text = self.text.replace("\t", " ")
+                self.text = self.text.strip()
+                while "  " in self.text:
+                    self.text = self.text.replace("  ", " ")
+        except Exception as e:
+            logging.error(e)
 
     def get_text(self) -> str:  # Возвращает полученный из документа текст
         return self.text
 
-    def make_doc_list(self) -> List[Document]:  # Метод для создания списка из экземпляров класса "Document"
+    def make_doc_list(self) -> Optional[List[Document]]:  # Метод для создания списка из экземпляров класса "Document"
         self.open_doc()  # Получение текста на вход
         requestslist = []
-        url = "https://api.garant.ru/v1/find-hyperlinks"  # Ссылка для запроса
+        url = self.url_make_links  # Ссылка для запроса
+        print(url)
         headers = {  # Заголовки для запроса
-            'Accept': 'application/json',
-            'Content-type': 'application/json',
+            'Accept': self.accept,
+            'Content-type': self.content_type,
             'Authorization': f'Bearer {self.token}'
         }
 
@@ -91,24 +100,66 @@ class checkDocsRelevance:  # Основной класс с методами д�
             cur = self.text[ind - 2000:ind]
             payload = json.dumps({
                 "text": cur,
-                "baseUrl": "https://internet.garant.ru"
+                "baseUrl": self.links_base_url
             })
-            response = requests.request("POST", url, headers=headers,
-                                        data=payload)  # Запрос для проставления ссылок в отрывке текста
+            try:
+                response = requests.request("POST", url, headers=headers,
+                                        data=payload, timeout=30)  # Запрос для проставления ссылок в отрывке текста
+            except Exception as e:
+                logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
+                return []
 
             html = response.json()["text"]
-            text += html
+            if ind != 2000:
+                center = text[-30:] + html[:30]
+                if "<a" not in center and "a>" not in center and "</a" not in center:
+                    payload = json.dumps({
+                        "text": center,
+                        "baseUrl": self.links_base_url
+                    })
+                    try:
+                        response = requests.request("POST", url, headers=headers,
+                                                data=payload,
+                                                timeout=30)  # Запрос для проставления ссылок в отрывке текста
+                    except Exception as e:
+                        logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
+                        return []
+                    text = text[:-30] + response.json()["text"] + html[30:]
+                else:
+                    text += html
+            else:
+                text += html
 
         if len(self.text) % 2000 != 0:
             cur = self.text[ind:]
             payload = json.dumps({
                 "text": cur,
-                "baseUrl": "https://internet.garant.ru"
+                "baseUrl": self.links_base_url
             })
-            response = requests.request("POST", url, headers=headers, data=payload)
+            try:
+                response = requests.request("POST", url, headers=headers, data=payload, timeout=30)
+                html = response.json()["text"]
+                center = text[-30:] + html[:30]
+                if "<a" not in center and "a>" not in center and "</a" not in center:
+                    payload = json.dumps({
+                        "text": center,
+                        "baseUrl": self.links_base_url
+                    })
+                    try:
+                        response = requests.request("POST", url, headers=headers,
+                                                    data=payload,
+                                                    timeout=30)  # Запрос для проставления ссылок в отрывке текста
+                    except Exception as e:
+                        logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
+                        return []
+                    text = text[:-30] + response.json()["text"] + html[30:]
+                else:
+                    text += html
+            except Exception as e:
+                logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
+
+                return []
             # print(response.text)
-            html = response.json()["text"]
-            text += html
 
         html = text
         htmls = re.split("<a href=\"|</a>", html)
@@ -142,32 +193,39 @@ class checkDocsRelevance:  # Основной класс с методами д�
             htmlc = htmlc.split('/')
             number = htmlc[0]  # Номер в системе Гарант
 
-            url = "https://api.garant.ru/v1/find-modified"
+            url = self.url_get_modifications
 
             payload = json.dumps({"topics": [number], "modDate": self.date})
             headers = {
                 'Authorization': f'Bearer {self.token}',
-                'Content-type': 'application/json',
-                'Accept': 'application/json'
+                'Content-type': self.content_type,
+                'Accept': self.accept
             }
-
-            response = requests.post(url, headers=headers, data=payload).json()[
-                "topics"]  # Запрос для получения сведений об акутальности документа на данную дату
+            try:
+                response = requests.post(url, headers=headers, data=payload, timeout=30).json()[
+                    "topics"]  # Запрос для получения сведений об акутальности документа на данную дату
+            except Exception as e:
+                logging.error(str(e) + ": Не удалось отправить запрос для получения изменений в документе с данной даты")
+                return []
 
             if len(response) == 0:
                 is_active_then = True
             else:
                 is_active_then = False
             print(number)
-            url1 = f'https://api.garant.ru/v1/topic/{number}'
+            url1 = f'{self.url_get_doc_info}{number}'
             headers1 = {
-                'Accept': 'application/json',
-                'Content-type': 'application/json',
+                'Accept': self.accept,
+                'Content-type': self.content_type,
                 'Authorization': f'Bearer {self.token}',
             }
 
-            response1 = requests.get(url1,
-                                     headers=headers1).json()  # Запрос для получения названия документа и сведений об актуальности на сегодня
+            try:
+                response1 = requests.get(url1,
+                                     headers=headers1, timeout=30).json()  # Запрос для получения названия документа и сведений об актуальности на сегодня
+            except Exception as e:
+                logging.error(str(e) + ": Не удалось отправить запрос для проучения информации о документе")
+                return []
             # print(response1)
             namme = response1['name']
             is_active_now = response1['status']
@@ -184,6 +242,18 @@ class checkDocsRelevance:  # Основной класс с методами д�
 
     def create_table(self, new_name):  # Метод для формирования HTML - Файла с таблицой документов
         data = self.make_doc_list()
+        changed = inactive = active = 0
+        for doc in data:
+            if doc.is_active_now:
+                active += 1
+            else:
+                inactive += 1
+            if not doc.is_active_then:
+                changed += 1
+        result = {self.name: {"output_file_name": f"{new_name}.html", "all": len(data), "changed": changed, "inactive": inactive, "active": active}}
+        with open(f"output/{new_name}.json", "w", encoding="utf-8") as f:
+            f.write(json.dumps(result))
+        f.close()
         # print(data)
 
         template = jinja2.Template('''<!DOCTYPE html>
@@ -222,7 +292,12 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 </div>
             </body>
         </html>''')
-        html = template.render(docs=data, given_date=self.date)  # Формирование HTML
+        try:
+            html = template.render(docs=data, given_date=self.date)  # Формирование HTML
+        except Exception as e:
+            logging.error(str(e) + ": Не удалось сформировать HTML")
+            return
+
         # print(html)
         with open(f"output/{new_name}.html", "w", encoding='utf-8') as f:  # Запись в файл "output/template.html"
             f.write(html)
@@ -241,4 +316,4 @@ def start(date="2021-10-25"):  # Функция обработки множес�
 # obj = checkDocsRelevance("test.pdf", "2021-10-25")
 # obj.create_table("out")
 
-start()
+# start()
