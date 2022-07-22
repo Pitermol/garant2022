@@ -1,1 +1,5 @@
-{"test.pdf": {"output_file_name": "out_4.html", "all": 8, "changed": 4, "inactive": 0, "active": 8}}
+{
+    "successStatus": "False",
+    "errorCode": "6",
+    "sourceFileName": "test.pdf"
+}

@@ -1,1 +1,10 @@
-{"file.pdf": {"output_file_name": "out_2.html", "all": 0, "changed": 0, "inactive": 0, "active": 0}}
+{
+    "successStatus": "True",
+    "errorCode": null,
+    "sourceFileName": "file.pdf",
+    "docLinksCount": 0,
+    "abolishedDocsCount": 0,
+    "changedDocsCount": 0,
+    "htmlResult": "out_2.html",
+    "docLinksList": []
+}
