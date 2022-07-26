@@ -114,98 +114,104 @@ class checkDocsRelevance:  # Основной класс с методами д�
                     continue
 
             print(len(cur_text))
-            while ind < len(cur_text):  # Разделение текста на куски по 2000 символов
-                ind += 2000
-                cur = cur_text[ind - 2000:ind]
-                payload = json.dumps({
-                    "text": cur,
-                    "baseUrl": self.linksBaseUrl
-                })
-                try:
-                    response = requests.request("POST", url, headers=headers,
-                                            data=payload, timeout=30)  # Запрос для проставления ссылок в отрывке текста
-                except Exception as e:
-                    logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
+            curSentences = ""
+            for j, sentence in enumerate(cur_text.split(".")):
+                if len(curSentences) + len(sentence) <= 2000:
+                    curSentences += sentence
+                    if j + 1 != len(cur_text.split(".")):
+                        continue
+                while ind < len(curSentences):  # Разделение текста на куски
+                    ind += 2000
+                    cur = curSentences[ind - 2000:ind]
+                    payload = json.dumps({
+                        "text": cur,
+                        "baseUrl": self.linksBaseUrl
+                    })
+                    try:
+                        response = requests.request("POST", url, headers=headers,
+                                                data=payload, timeout=30)  # Запрос для проставления ссылок в отрывке текста
+                    except Exception as e:
+                        logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
 
-                    result = {"successStatus": "False", "errorCode": "2", "sourceFileName": self.fileName}
-                    with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
-                        f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
-                    f.close()
-                    self.operationStatus = False
+                        result = {"successStatus": "False", "errorCode": "2", "sourceFileName": self.fileName}
+                        with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
+                            f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
+                        f.close()
+                        self.operationStatus = False
 
-                    return []
+                        return []
 
-                html = response.json()["text"]
-                if ind != 2000:
-                    center = text[-30:] + html[:30]
-                    if "<a" not in center and "a>" not in center and "</a" not in center:
-                        payload = json.dumps({
-                            "text": center,
-                            "baseUrl": self.linksBaseUrl
-                        })
-                        try:
-                            response = requests.request("POST", url, headers=headers,
-                                                    data=payload,
-                                                    timeout=30)  # Запрос для проставления ссылок в отрывке текста
-                            text = text[:-30] + response.json()["text"] + html[30:]
-                        except Exception as e:
-                            logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
-
-                            result = {"successStatus": "False", "errorCode": "3", "sourceFileName": self.fileName}
-                            with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
-                                f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
-                            f.close()
-                            self.operationStatus = False
-
-                            return []
-                    else:
-                        text += html
-                else:
-                    text += html
-
-            if len(cur_text) % 2000 != 0:
-                cur = cur_text[ind:]
-                payload = json.dumps({
-                    "text": cur,
-                    "baseUrl": self.linksBaseUrl
-                })
-                try:
-                    response = requests.request("POST", url, headers=headers, data=payload, timeout=30)
                     html = response.json()["text"]
-                    center = text[-30:] + html[:30]
-                    if "<a" not in center and "a>" not in center and "</a" not in center:
-                        payload = json.dumps({
-                            "text": center,
-                            "baseUrl": self.linksBaseUrl
-                        })
-                        try:
-                            response = requests.request("POST", url, headers=headers,
+                    if ind != 2000:
+                        center = text[-30:] + html[:30]
+                        if "<a" not in center and "a>" not in center and "</a" not in center:
+                            payload = json.dumps({
+                                "text": center,
+                                "baseUrl": self.linksBaseUrl
+                            })
+                            try:
+                                response = requests.request("POST", url, headers=headers,
                                                         data=payload,
                                                         timeout=30)  # Запрос для проставления ссылок в отрывке текста
-                        except Exception as e:
-                            logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
+                                text = text[:-30] + response.json()["text"] + html[30:]
+                            except Exception as e:
+                                logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
 
-                            result = {"successStatus": "False", "errorCode": "4", "sourceFileName": self.fileName}
-                            with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
-                                f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
-                            f.close()
-                            self.operationStatus = False
+                                result = {"successStatus": "False", "errorCode": "3", "sourceFileName": self.fileName}
+                                with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
+                                    f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
+                                f.close()
+                                self.operationStatus = False
 
-                            return []
-                        text = text[:-30] + response.json()["text"] + html[30:]
+                                return []
+                        else:
+                            text += html
                     else:
                         text += html
-                except Exception as e:
-                    logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
 
-                    result = {"successStatus": "False", "errorCode": "5", "sourceFileName": self.fileName}
-                    with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
-                        f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
-                    f.close()
-                    self.operationStatus = False
+                if len(curSentences) % 2000 != 0:
+                    cur = curSentences[ind:]
+                    payload = json.dumps({
+                        "text": cur,
+                        "baseUrl": self.linksBaseUrl
+                    })
+                    try:
+                        response = requests.request("POST", url, headers=headers, data=payload, timeout=30)
+                        html = response.json()["text"]
+                        center = text[-30:] + html[:30]
+                        if "<a" not in center and "a>" not in center and "</a" not in center:
+                            payload = json.dumps({
+                                "text": center,
+                                "baseUrl": self.linksBaseUrl
+                            })
+                            try:
+                                response = requests.request("POST", url, headers=headers,
+                                                            data=payload,
+                                                            timeout=30)  # Запрос для проставления ссылок в отрывке текста
+                            except Exception as e:
+                                logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
 
-                    return []
-            # print(response.text)
+                                result = {"successStatus": "False", "errorCode": "4", "sourceFileName": self.fileName}
+                                with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
+                                    f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
+                                f.close()
+                                self.operationStatus = False
+
+                                return []
+                            text = text[:-30] + response.json()["text"] + html[30:]
+                        else:
+                            text += html
+                    except Exception as e:
+                        logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
+
+                        result = {"successStatus": "False", "errorCode": "5", "sourceFileName": self.fileName}
+                        with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
+                            f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
+                        f.close()
+                        self.operationStatus = False
+
+                        return []
+                # print(response.text)
 
         html = text
         htmls = re.split("<a href=\"|</a>", html)
