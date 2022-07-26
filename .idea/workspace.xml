@@ -3,7 +3,15 @@
   <component name="ChangeListManager">
     <list default="true" id="1612f525-ae8e-46b4-9e86-2a63f2c260b1" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1/settings.ini" beforeDir="false" afterPath="$PROJECT_DIR$/1/settings.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/1/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/1/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/1/output/out_1.json" beforeDir="false" afterPath="$PROJECT_DIR$/1/output/out_1.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/1/output/out_4.json" beforeDir="false" afterPath="$PROJECT_DIR$/1/output/out_4.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/2/double.html" beforeDir="false" afterPath="$PROJECT_DIR$/2/double.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/2/input/new.rtf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/2/input/Новый документ.rtf" beforeDir="false" afterPath="$PROJECT_DIR$/2/input/Новый документ.rtf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/2/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/2/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/2/output/~$меняющий акт.rtf" beforeDir="false" afterPath="$PROJECT_DIR$/2/output/~$меняющий акт.rtf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/2/test.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/2/test.pdf" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,7 +41,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "C:/Users/admin/PycharmProjects/garant2022",
+    "last_opened_file_path": "C:/Users/admin/PycharmProjects/shopParsing",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
@@ -42,13 +50,13 @@
       <recent name="C:\Users\admin\PycharmProjects\garant2022\2" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\admin\PycharmProjects\garant2022\2\input" />
       <recent name="C:\Users\admin\PycharmProjects\garant2022\2" />
       <recent name="C:\Users\admin\PycharmProjects\garant2022" />
-      <recent name="C:\Users\admin\PycharmProjects\garant2022\2\input" />
       <recent name="C:\Users\admin\PycharmProjects\garant2022\2\output" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.main (1)">
+  <component name="RunManager" selected="Python.main (2)">
     <configuration name="main (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="garant2022" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -114,8 +122,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.main (1)" />
         <item itemvalue="Python.main (2)" />
+        <item itemvalue="Python.main (1)" />
       </list>
     </recent_temporary>
   </component>

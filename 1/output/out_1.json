@@ -1,5 +1,32 @@
 {
-    "successStatus": "False",
-    "errorCode": "6",
-    "sourceFileName": "file.docx"
+    "successStatus": "True",
+    "errorCode": null,
+    "sourceFileName": "file.docx",
+    "docLinksCount": 2,
+    "abolishedDocsCount": 0,
+    "changedDocsCount": 2,
+    "htmlResult": "out_1.html",
+    "docLinksList": [
+        {
+            "id": 1,
+            "docName": "Федеральный закон от 6 октября 2003 г. N 131-ФЗ \"Об общих принципах организации местного самоуправления в Российской Федерации\" (с изменениями и дополнениями)",
+            "docLink": "https://internet.garant.ru/#/document/186367/entry/0",
+            "abolishedStatus": "False",
+            "changedStatus": "True",
+            "linkContext": [
+                " поселения&quot; В соответствии с от 06.10.2003 N <a href=\"https://internet.garant.ru/#/document/186367/entry/0\">131-ФЗ</a> &quot;Об общих принципах организации местного сам"
+            ]
+        },
+        {
+            "id": 2,
+            "docName": "Федеральный закон от 5 апреля 2013 г. N 44-ФЗ \"О контрактной системе в сфере закупок товаров, работ, услуг для обеспечения государственных и муниципальных нужд\" (с изменениями и дополнениями)",
+            "docLink": "https://internet.garant.ru/#/document/70353464/entry/0",
+            "abolishedStatus": "False",
+            "changedStatus": "True",
+            "linkContext": [
+                "ния в Российской Федерации&quot;, от 05.04.2013 N <a href=\"https://internet.garant.ru/#/document/70353464/entry/0\">44-ФЗ</a> &quot;О контрактной системе в сфере закупок товар",
+                " ... при формировании плана-графика закупок, с учетом <a href=\"https://internet.garant.ru/#/document/70353464/entry/0\">Федерального закона</a> от 05.04.2013 N 44-ФЗ &quot;О контрактной системе..."
+            ]
+        }
+    ]
 }
