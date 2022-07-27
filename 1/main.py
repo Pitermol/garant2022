@@ -95,14 +95,14 @@ class checkDocsRelevance:  # Основной класс с методами д�
         requestslist = []
         docsLinksList = []
         url = self.apiUrlMakeLinks  # Ссылка для запроса
-        print(url)
+        # print(url)
         headers = {  # Заголовки для запроса
             'Accept': self.apiAccept,
             'Content-type': self.apiContentType,
             'Authorization': f'Bearer {self.APIToken}'
         }
 
-        print(self.docRawText)
+        # print(self.docRawText)
         text = ""
         ind = 0
         paraList = self.docRawText.split("\n")
@@ -113,7 +113,7 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 if i + 1 != len(paraList):
                     continue
 
-            print(len(cur_text))
+            # print(len(cur_text))
             curSentences = ""
             for j, sentence in enumerate(cur_text.split(".")):
                 if len(curSentences) + len(sentence) <= 2000:
@@ -141,7 +141,7 @@ class checkDocsRelevance:  # Основной класс с методами д�
 
                         return []
 
-                    html = response.json()["text"]
+                    html = response.json()["text"].replace("&quot;", "\"").replace("ГАРАНТ1/2", "").replace("20072022", " ")
                     if ind != 2000:
                         center = text[-30:] + html[:30]
                         if "<a" not in center and "a>" not in center and "</a" not in center:
@@ -214,37 +214,93 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 # print(response.text)
 
         html = text
-        htmls = re.split("<a href=\"|</a>", html)
         # print(html)
+        htmls = re.split("<a href=\"|</a>", html)
+        print(htmls)
+        # print(html)
+        ind = 0
 
         for i in range(1, len(htmls),
                        2):  # Поиск всех документов, извлечение ссылок, их номеров в системе Гарант и контекста
+            ind += 1
             htmlc = htmls[i]
             htmlc = re.split('"', htmlc)
             link = htmlc[0]  # Ссылка
+            docLength = len(htmls[i].split(">")[1])
+            # print(docLength, htmls[i-2])
+            curDocContext = ""
+            htmlPart = i - 1
 
-            try:
-                curDocContext = htmls[i - 1][-50:]
-            except:
-                curDocContext = htmls[i - 1]
+            while htmlPart >= 0 and len(curDocContext) < (244 - docLength) // 2:
+                if "https" in htmls[htmlPart]:
+                    partNeeded = htmls[htmlPart].split(">")[1]
+                    if len(partNeeded) + len(curDocContext) <= (244 - docLength) // 2:
+                        curDocContext = partNeeded + curDocContext
+                    else:
+                        print(1.2, len(partNeeded) + len(curDocContext), (244 - docLength) // 2)
+                        # curDocContext = partNeeded[-((244 - docLength) // 2 - len(curDocContext)) + 1:] + curDocContext
+                        curDocContext = partNeeded + curDocContext
+                        curDocContext = curDocContext[-((244 - docLength) // 2):]
+                        print(len(curDocContext))
+                    htmlPart -= 1
+                    print(1, curDocContext)
+                else:
+                    if len(htmls[htmlPart]) + len(curDocContext) <= (244 - docLength) // 2:
+                        curDocContext = htmls[htmlPart] + curDocContext
+                        print(2.1, curDocContext)
+                    else:
+                        # curDocContext = htmls[htmlPart][-((244 - docLength) // 2 - len(curDocContext)) + 1:] + curDocContext
+                        curDocContext = htmls[htmlPart] + curDocContext
+                        curDocContext = curDocContext[-((244 - docLength) // 2):]
+                        print(2.2, curDocContext)
+                    htmlPart -= 1
 
+            # print(len(curDocContext), curDocContext)
+            print()
+
+            linkLength = len(htmls[i].split("\"")[0])
             curDocContext += "<a href=\"" + htmls[i] + "</a>"
 
-            try:
-                if len(htmls) > i + 1:
-                    curDocContext += htmls[i + 1][:50]
-            except:
-                if len(htmls) > i + 1:
-                    curDocContext += htmls[i + 1]
+            htmlPart = i + 1
+            while htmlPart < len(htmls) and len(curDocContext) < 250 + 7 + linkLength:
+                if "https" in htmls[htmlPart]:
+                    partNeeded = htmls[htmlPart].split(">")[1]
+                    # print(partNeeded)
+                    if len(partNeeded) <= 250 + 7 + linkLength - len(curDocContext):
+                        curDocContext += partNeeded
+                    else:
+                        curDocContext += partNeeded
+                        curDocContext = curDocContext[:250 + 7 + linkLength]
+                        # curDocContext += partNeeded[:250 + docLength + 15 - len(curDocContext)]
+                    htmlPart += 1
+                else:
+                    if len(htmls[htmlPart]) <= 250 + linkLength + 7 - len(curDocContext):
+                        curDocContext += htmls[htmlPart]
+                    else:
+                        curDocContext += htmls[htmlPart]
+                        curDocContext = curDocContext[:250 + linkLength + 7]
+                        # curDocContext += htmls[htmlPart][:250 + docLength + 15 - len(curDocContext)]
+                    htmlPart += 1
+
+            # try:
+            #     if len(htmls) > i + 1:
+            #         curDocContext += htmls[i + 1][:(244 - docLength) // 2]
+            # except Exception as e:
+            #     print(e)
+            #     if len(htmls) > i + 1:
+            #         curDocContext += htmls[i + 1]
 
             curDocContext = curDocContext.replace("<p>", "")
             curDocContext = curDocContext.replace("</p>", "")  # Контекст
+            # print(len(curDocContext), curDocContext)
 
             if link not in docsLinksList:
                 docsLinksList.append(link)
-                curDocContext = [curDocContext]
+                curDocContext = ["..." + curDocContext + "..."]
             else:
                 requestslist[requestslist.index(list(filter(lambda x: x.link == link, requestslist))[0])].context.append(f" ...{curDocContext}...")
+                ind -= 1
+                print(1)
                 continue
 
             htmlc = str(htmlc[0])
@@ -279,7 +335,7 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 isActiveThen = True
             else:
                 isActiveThen = False
-            print(number)
+            # print(number)
             url1 = f'{self.apiUrlGetDocInfo}{number}'
             headers1 = {
                 'Accept': self.apiAccept,
@@ -302,13 +358,15 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 return []
             # print(response1)
             curDocName = response1['name']
+            if len(curDocName) > 250:
+                curDocName = curDocName[:250]
             isActiveNow = response1['status']
             if isActiveNow == "Действующие":
                 isActiveNow = True
             else:
                 isActiveNow = False
 
-            a = Document(str(i // 2 + 1), number, link, curDocName, isActiveThen, isActiveNow, curDocContext,
+            a = Document(str(ind), number, link, curDocName, isActiveThen, isActiveNow, curDocContext,
                          self.dateToCheck)  # Создание объекта документа
             requestslist.append(a)
 
@@ -362,7 +420,9 @@ class checkDocsRelevance:  # Основной класс с методами д�
                                 <td>Недействующий</td>{% endif %}{% if doc.isActiveThen %}
                                 <td>Нет</td>{% else %}
                                 <td>Да</td>{% endif %}
-                                <td>...{{doc.context}}...</td>
+                                <td>{% for context in doc.context %}
+                                    {{context}}<br>{% endfor %}
+                                </td>
                             </tr>{% endfor %}
                         </tbody>
                     </table>
@@ -405,4 +465,4 @@ def start(date="2021-10-25"):  # Функция обработки множес�
         obj.create_table()  # Вызов метода для формирования таблицы
 
 
-start()
+start()  # 250 символов в контексте, дату из сведений
