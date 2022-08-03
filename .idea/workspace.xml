@@ -2,27 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1612f525-ae8e-46b4-9e86-2a63f2c260b1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/1/reserve/file.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/1/reserve/file.pdf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/1/reserve/pdf-test.pdf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/1/reserve/test.pdf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/1/test.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/2/output/template.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/1/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/1/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1/output/out_1.html" beforeDir="false" afterPath="$PROJECT_DIR$/1/output/out_1.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1/output/out_1.json" beforeDir="false" afterPath="$PROJECT_DIR$/1/output/out_1.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1/output/out_3.html" beforeDir="false" afterPath="$PROJECT_DIR$/1/output/out_3.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1/output/out_3.json" beforeDir="false" afterPath="$PROJECT_DIR$/1/output/out_3.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1/output/out_4.html" beforeDir="false" afterPath="$PROJECT_DIR$/1/output/out_4.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1/output/out_4.json" beforeDir="false" afterPath="$PROJECT_DIR$/1/output/out_4.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/2/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/2/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/2/output/~$меняющий акт.rtf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/2/test.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/2/test.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pipfile" beforeDir="false" afterPath="$PROJECT_DIR$/Pipfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pipfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Pipfile.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/1/settings.ini" beforeDir="false" afterPath="$PROJECT_DIR$/1/settings.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/2/settings.ini" beforeDir="false" afterPath="$PROJECT_DIR$/2/settings.ini" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
