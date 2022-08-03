@@ -62,7 +62,7 @@ class docGeneration:
         else:
             self.type = "Неизвестный тип"
 
-        self.origText = rtf_to_text(text, errors='ignore').replace("\xa0", " ").split("\n")
+        self.origText = rtf_to_text(text, errors='ignore').replace("\xa0", " ").replace("  ", " ").split("\n")
         # print(rtf_to_text(text, errors='ignore'))
 
     def set_readyText(self):
@@ -90,7 +90,7 @@ class docGeneration:
         #     "}}}")[0]
         self.name_changing = f"{self.name_new.split(' от ')[0]} об изменениях от {self.new_date} "
         self.new_date = self.name_new.split(" от ")[1].split(" г. ")[0] + " г."
-        self.readyText = rtf_to_text(text, errors='ignore').replace("\xa0", " ").split("\n")
+        self.readyText = rtf_to_text(text, errors='ignore').replace("\xa0", " ").replace("  ", " ").split("\n")
         # print(self.readyText)
         # print(self.origText)
         while "" in self.readyText:
@@ -173,7 +173,7 @@ class docGeneration:
         body = "".join(body)
         html = html.replace("@@@body@@@", body)
         # print(html)
-        with open("test1.html", "w", encoding="utf-8") as f:
+        with open("output/template.html", "w", encoding="utf-8") as f:
             f.write(html)
         f.close()
 
@@ -194,6 +194,9 @@ class docGeneration:
         # Почистить differences
 
         for i in diff:
+            if i.split()[1:3] == "В соответствии".split():
+                print(2)
+                continue
             if len(cur) == 0:
                 cur.append(i)
             elif len(cur) == 1:
@@ -272,8 +275,8 @@ class docGeneration:
                     change = f"{place} {self.nameOld} дополнить {difference}"
                     changes.append(change)
             else:
-                old = difference[0][2:]
-                new = difference[1][2:]
+                old = difference[0][2:].strip()
+                new = difference[1][2:].strip()
                 if old.startswith("Статья") or old.startswith("Пункт") or \
                         old.startswith("Глава") or old.startswith("Раздел") \
                         or old.startswith("Часть"):
@@ -298,23 +301,144 @@ class docGeneration:
                     if "." in self.origText[ind].split()[0] and self.origText[ind].split(".")[0].isnumeric():
                         place.append("Раздел " + self.origText[ind].split(".")[0] + " ")
                 place = "".join(place[::-1])
-                # cur_diff = df.Differ().compare(old, new)
-                # cur = []
-                # amount_changes = []
-                # for i in cur_diff:
-                #     if i[0] != "?":
-                #         if not cur:
-                #             cur.append(i[2:])
-                #         else:
-                #             if cur[0][0] != i[0]:
-                #                 cur.append(i[2:])
-                #             else:
-                #                 if len(cur) == 2:
-                #                     amount_changes.append("inf")
-                #                 else:
-                #                     amount_changes.append(cur[cur.index(list(filter(lambda x: x[0] == "?", cur))[0])])
-                change = f"{place} {self.nameOld} изложить в редакции: <br>    \"{new}\""
-                changes.append(change)
+                old = [old]
+                new = [new]
+                diff = list(df.Differ().compare(old, new))
+                print(*diff, sep="\n")
+                ready = []
+                changingIndexes = []
+                changingIndexes1 = []
+                if len(diff) > 2:
+                    if len(diff) == 4:
+                        diff1 = diff[1].replace("\n", "")[2:]
+                        diff2 = diff[3].replace("\n", "")[2:]
+                        new1 = new[0]
+                        old1 = old[0]
+                        old = old[0].split()
+                        new = new[0].split()
+                        ind = 0
+                        curInd = 0
+                        for j, i in enumerate(old):
+                            if diff1[ind:len(i)] == "-" * len(i):
+                                if ind >= 30:
+                                    ready.append(f"Исключить слово \"{i}\" после слов \"...{old1[ind - 30:ind]}\"")
+                                elif len(old1) - 30 >= ind + len(i):
+                                    ready.append(
+                                        f"Исключить слово \"{i}\" перед словами\"{old1[ind + len(i) + 1:ind + len(i) + 30]}...\"")
+                                else:
+                                    ready.append(f"Исключить слово \"{i}\" из предложения \"{old1}\"")
+                            elif diff1[ind:ind + len(i)] != " " * len(i) and diff1[ind:ind + len(i)] != "":
+                                if j - 1 in changingIndexes1:
+                                    if "после слов" in ready[-1]:
+                                        prev = ready[-1].split("\" после слов")[0].split("\"")[1]
+                                    elif "перед словами" in ready[-1]:
+                                        prev = ready[-1].split("\" перед словами")[0].split("\"")[1]
+                                    else:
+                                        prev = ready[-1].split("\" из предложения")[0].split("\"")[1]
+                                    ready[-1] = ready[-1].replace(prev, prev + " " + i)
+                                    # print("@", ready[-1])
+                                    # changingIndexes.append(j)
+                                    continue
+
+                                print(i, diff1[ind:ind + len(i)])
+                                if ind >= 30:
+                                    ready.append(f"Изменить \"{i}\" после слов \"...{old1[ind - 30:ind]}\" на \"")
+                                elif len(old1) - 30 >= ind + len(i):
+                                    ready.append(
+                                        f"Изменить \"{i}\" перед словами \"{old1[ind + len(i) + 1:ind + len(i) + 30]}...\" на \"")
+                                else:
+                                    ready.append(f"Изменить \"{i}\" из предложения \"{old1}\" на \"")
+
+                                changingIndexes.append(len(ready) - 1)
+                                changingIndexes1.append(j)
+                            ind += len(i) + 1
+                            if ind >= len(diff1):
+                                break
+
+                        ind = 0
+                        for j, i in enumerate(new):
+                            if diff2[ind:ind + len(i)] == "+" * len(i):
+                                if ind >= 30:
+                                    ready.append(f"Добавить слово \"{i}\" после слов \"...{new1[ind - 30:ind]}...\"")
+                                elif len(new1) - 30 >= ind + len(i):
+                                    ready.append(
+                                        f"Добавить слово \"{i}\" перед словами\"...{new1[ind + len(i):ind + len(i) + 30]}...\"")
+                                else:
+                                    ready.append(f"Добавить слово \"{i}\" в предложение \"...{new1}...\"")
+                            elif diff2[ind:ind + len(i)] != " " * len(i) and diff2[ind:ind + len(i)] != "":
+                                try:
+                                    if new[j - 1] in ready[changingIndexes[curInd - 1]].split("\" на")[-1]:
+                                        curInd -= 1
+                                        ready[changingIndexes[curInd]] = ready[changingIndexes[curInd]][:-1] + " " + i + "\""
+                                        curInd += 1
+                                        print(1, new[j - 1], ready[changingIndexes[curInd - 1]])
+                                    else:
+                                        print(2, i, diff2[ind:ind + len(i)])
+                                        ready[changingIndexes[curInd]] += i + "\""
+                                        curInd += 1
+                                except Exception as e:
+                                    print(e)
+                            ind += len(i) + 1
+                            if ind >= len(diff2):
+                                break
+                        print(ready)
+                        for i in ready:
+                            change = f"{place} {self.nameOld} {i}"
+                            changes.append(change)
+
+                    elif diff[1].startswith("?"):
+                        diff1 = diff[1].replace("\n", "")[2:]
+                        old1 = old[0]
+                        old = old[0].split()
+                        ind = 0
+                        for i in old:
+                            if diff1[ind:len(i)] == "-" * len(i):
+                                if ind >= 30:
+                                    ready.append(f"Исключить слово \"{i}\" после слов \"...{old1[ind - 30:ind]}...\"")
+                                elif len(old1) - 30 >= ind + len(i):
+                                    ready.append(
+                                        f"Исключить слово \"{i}\" перед словами\"...{old1[ind + len(i) + 1:ind + len(i) + 30]}...\"")
+                                else:
+                                    ready.append(f"Исключить слово \"{i}\" из предложения \"...{old1}...\"")
+
+                                changingIndexes.append(len(ready) - 1)
+                            ind += len(i) + 1
+                            if ind >= len(diff1):
+                                break
+                        for i in ready:
+                            change = f"{place} {self.nameOld} {i}"
+                            changes.append(change)
+                    else:
+                        diff2 = diff[3].replace("\n", "")[2:]
+                        new1 = new[0]
+                        new = new[0].split()
+                        ind = 0
+                        curInd = 0
+                        for i in new:
+                            if diff2[ind:ind + len(i)] == "+" * len(i):
+                                if ind >= 30:
+                                    ready.append(f"Добавить слово \"{i}\" после слов \"...{new1[ind - 30:ind]}...\"")
+                                elif len(new1) - 30 >= ind + len(i):
+                                    ready.append(
+                                        f"Добавить слово \"{i}\" перед словами\"...{new1[ind + len(i):ind + len(i) + 30]}...\"")
+                                else:
+                                    ready.append(f"Добавить слово \"{i}\" в предложение \"...{new1}...\"")
+                            elif diff2[ind:ind + len(i)] != " " * len(i) and diff2[ind:ind + len(i)] != "":
+                                try:
+                                    ready[changingIndexes[curInd]] += i + "\""
+                                    curInd += 1
+                                except Exception as e:
+                                    print(e)
+                            ind += len(i) + 1
+                            if ind >= len(diff2):
+                                break
+                        for i in ready:
+                            change = f"{place} {self.nameOld} {i}"
+                            changes.append(change)
+
+                else:
+                    change = f"{place} {self.nameOld} изложить в редакции: <br>    \"{new}\""
+                    changes.append(change)
 
         self.create_docx(name_new=self.name_new, nameOld=self.nameOld, link_changing="https://ya.ru", type=self.type,
                          new_date=self.new_date, changes=changes)

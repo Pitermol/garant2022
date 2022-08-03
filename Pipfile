@@ -20,6 +20,9 @@ weasyprint = "*"
 pyqt6 = "*"
 pyqt5 = "*"
 pyqtwebengine = "*"
+odfpy = "*"
+ezodf = "*"
+chardet = "*"
 
 [dev-packages]
 

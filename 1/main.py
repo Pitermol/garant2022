@@ -10,6 +10,13 @@ import requests
 import fitz
 from typing import List, Optional
 import logging
+import odf
+import ezodf
+import os, sys
+import zipfile
+import xml.dom.minidom
+import chardet
+from odf.opendocument import load
 
 
 @dataclass
@@ -30,6 +37,7 @@ class checkDocsRelevance:  # Основной класс с методами д�
         self.docxFile = None
         self.new_name = new_name
         self.docRawText = ""
+        self.docCreatingDate = ""
         self.fileName = name
         self.operationStatus = True
         self.docType = self.fileName.split(".")[-1]
@@ -45,8 +53,37 @@ class checkDocsRelevance:  # Основной класс с методами д�
 
     def open_doc(self):  # Функция для открытия документа и его считывания
         try:
-            if self.docType == "pdf":  # Если формат - PDF
+            if self.docType == "odt":
+                doc = ezodf.opendoc(f"input/{self.fileName}")
+                print(doc.meta)
+                m_odf = zipfile.ZipFile(f"input/{self.fileName}")
+                filelist = m_odf.infolist()
+                ostr = m_odf.read('content.xml')
+                meta = m_odf.read("META-INF/manifest.xml")
+                print(meta)
+                doc = xml.dom.minidom.parseString(ostr)
+                paras = doc.getElementsByTagName('text:p')
+
+                text_in_paras = []
+                for p in paras:
+                    for ch in p.childNodes:
+                        if ch.nodeType == ch.TEXT_NODE:
+                            text_in_paras.append(ch.data)
+                self.docRawText = "".join(text_in_paras)
+
+                self.docRawText = self.docRawText.replace("\n\n", "\n")
+                self.docRawText = self.docRawText.replace("\t", " ")
+                self.docRawText = self.docRawText.strip()
+                while "  " in self.docRawText:
+                    self.docRawText = self.docRawText.replace("  ", " ")
+            elif self.docType == "pdf":  # Если формат - PDF
                 with fitz.open(f'input/{self.fileName}') as doc:
+                    metadata = doc.metadata["creationDate"]
+                    if len(metadata) > 0:
+                        year = metadata[2:][:4]
+                        month = metadata[2:][4:6]
+                        day = metadata[2:][6:8]
+                        self.docCreatingDate = f"{day}.{month}.{year}"
                     text = ""
                     for page in doc:
                         text += page.get_text()
@@ -59,6 +96,7 @@ class checkDocsRelevance:  # Основной класс с методами д�
                     self.docRawText = self.docRawText.replace("  ", " ")
             elif self.docType == "docx":  # Если формат - DOCX
                 self.docxFile = docx.Document(f'input/{self.fileName}')
+                self.docCreatingDate = self.docxFile.core_properties.created
                 for para in range(len(self.docxFile.paragraphs)):
                     self.docRawText += " " + self.docxFile.paragraphs[para].text
 
@@ -95,17 +133,19 @@ class checkDocsRelevance:  # Основной класс с методами д�
         requestslist = []
         docsLinksList = []
         url = self.apiUrlMakeLinks  # Ссылка для запроса
-        print(url)
+        # print(url)
+        # print(self.docCreatingDate)
         headers = {  # Заголовки для запроса
             'Accept': self.apiAccept,
             'Content-type': self.apiContentType,
             'Authorization': f'Bearer {self.APIToken}'
         }
 
-        print(self.docRawText)
+        # print(self.docRawText)
         text = ""
         ind = 0
         paraList = self.docRawText.split("\n")
+        print(len(paraList))
         cur_text = ""
         for i, paragraph in enumerate(paraList):
             if len(cur_text) + len(paragraph) <= 2000:
@@ -113,10 +153,18 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 if i + 1 != len(paraList):
                     continue
 
-            print(len(cur_text))
-            while ind < len(cur_text):  # Разделение текста на куски по 2000 символов
-                ind += 2000
-                cur = cur_text[ind - 2000:ind]
+            if cur_text == "":
+                cur_text = paragraph
+            # print(len(cur_text))
+            curSentences = ""
+            for j, sentence in enumerate(re.split(",", cur_text)):
+                # print(sentence)
+                if len(curSentences) + len(sentence) <= 2000:
+                    curSentences += sentence + ","
+                    if j + 1 != len(re.split(",", cur_text)):
+                        continue
+                cur = curSentences[:-1]
+                print(cur)
                 payload = json.dumps({
                     "text": cur,
                     "baseUrl": self.linksBaseUrl
@@ -124,18 +172,16 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 try:
                     response = requests.request("POST", url, headers=headers,
                                             data=payload, timeout=30)  # Запрос для проставления ссылок в отрывке текста
+                    print(response.text)
                 except Exception as e:
                     logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
-
                     result = {"successStatus": "False", "errorCode": "2", "sourceFileName": self.fileName}
                     with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
                         f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
                     f.close()
                     self.operationStatus = False
-
                     return []
-
-                html = response.json()["text"]
+                html = response.json()["text"].replace("&quot;", "\"").replace("ГАРАНТ1/2", "").replace("20072022", " ")
                 if ind != 2000:
                     center = text[-30:] + html[:30]
                     if "<a" not in center and "a>" not in center and "</a" not in center:
@@ -150,95 +196,107 @@ class checkDocsRelevance:  # Основной класс с методами д�
                             text = text[:-30] + response.json()["text"] + html[30:]
                         except Exception as e:
                             logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
-
                             result = {"successStatus": "False", "errorCode": "3", "sourceFileName": self.fileName}
                             with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
                                 f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
                             f.close()
                             self.operationStatus = False
-
                             return []
                     else:
                         text += html
                 else:
                     text += html
-
-            if len(cur_text) % 2000 != 0:
-                cur = cur_text[ind:]
-                payload = json.dumps({
-                    "text": cur,
-                    "baseUrl": self.linksBaseUrl
-                })
-                try:
-                    response = requests.request("POST", url, headers=headers, data=payload, timeout=30)
-                    html = response.json()["text"]
-                    center = text[-30:] + html[:30]
-                    if "<a" not in center and "a>" not in center and "</a" not in center:
-                        payload = json.dumps({
-                            "text": center,
-                            "baseUrl": self.linksBaseUrl
-                        })
-                        try:
-                            response = requests.request("POST", url, headers=headers,
-                                                        data=payload,
-                                                        timeout=30)  # Запрос для проставления ссылок в отрывке текста
-                        except Exception as e:
-                            logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
-
-                            result = {"successStatus": "False", "errorCode": "4", "sourceFileName": self.fileName}
-                            with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
-                                f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
-                            f.close()
-                            self.operationStatus = False
-
-                            return []
-                        text = text[:-30] + response.json()["text"] + html[30:]
-                    else:
-                        text += html
-                except Exception as e:
-                    logging.error(str(e) + ": Не удалось отправить запрос для проставления ссылок")
-
-                    result = {"successStatus": "False", "errorCode": "5", "sourceFileName": self.fileName}
-                    with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
-                        f.write(json.dumps(result, ensure_ascii=False, indent=4, sort_keys=False))
-                    f.close()
-                    self.operationStatus = False
-
-                    return []
-            # print(response.text)
+                curSentences = ""
+            cur_text = ""
 
         html = text
+        print(html)
         htmls = re.split("<a href=\"|</a>", html)
+        # print(htmls)
         # print(html)
+        ind = 0
 
         for i in range(1, len(htmls),
                        2):  # Поиск всех документов, извлечение ссылок, их номеров в системе Гарант и контекста
+            ind += 1
             htmlc = htmls[i]
             htmlc = re.split('"', htmlc)
             link = htmlc[0]  # Ссылка
+            docLength = len(htmls[i].split(">")[1])
+            # print(docLength, htmls[i-2])
+            curDocContext = ""
+            htmlPart = i - 1
 
-            try:
-                curDocContext = htmls[i - 1][-50:]
-            except:
-                curDocContext = htmls[i - 1]
+            while htmlPart >= 0 and len(curDocContext) < (244 - docLength) // 2:
+                if "https" in htmls[htmlPart]:
+                    partNeeded = htmls[htmlPart].split(">")[1]
+                    if len(partNeeded) + len(curDocContext) <= (244 - docLength) // 2:
+                        curDocContext = partNeeded + curDocContext
+                    else:
+                        # print(1.2, len(partNeeded) + len(curDocContext), (244 - docLength) // 2)
+                        # curDocContext = partNeeded[-((244 - docLength) // 2 - len(curDocContext)) + 1:] + curDocContext
+                        curDocContext = partNeeded + curDocContext
+                        curDocContext = curDocContext[-((244 - docLength) // 2):]
+                        # print(len(curDocContext))
+                    htmlPart -= 1
+                    # print(1, curDocContext)
+                else:
+                    if len(htmls[htmlPart]) + len(curDocContext) <= (244 - docLength) // 2:
+                        curDocContext = htmls[htmlPart] + curDocContext
+                        # print(2.1, curDocContext)
+                    else:
+                        # curDocContext = htmls[htmlPart][-((244 - docLength) // 2 - len(curDocContext)) + 1:] + curDocContext
+                        curDocContext = htmls[htmlPart] + curDocContext
+                        curDocContext = curDocContext[-((244 - docLength) // 2):]
+                        # print(2.2, curDocContext)
+                    htmlPart -= 1
 
+            # print(len(curDocContext), curDocContext)
+            # print()
+
+            linkLength = len(htmls[i].split("\"")[0])
             curDocContext += "<a href=\"" + htmls[i] + "</a>"
 
-            try:
-                if len(htmls) > i + 1:
-                    curDocContext += htmls[i + 1][:50]
-            except:
-                if len(htmls) > i + 1:
-                    curDocContext += htmls[i + 1]
+            htmlPart = i + 1
+            while htmlPart < len(htmls) and len(curDocContext) < 250 + 7 + linkLength:
+                if "https" in htmls[htmlPart]:
+                    partNeeded = htmls[htmlPart].split(">")[1]
+                    # print(partNeeded)
+                    if len(partNeeded) <= 250 + 7 + linkLength - len(curDocContext):
+                        curDocContext += partNeeded
+                    else:
+                        curDocContext += partNeeded
+                        curDocContext = curDocContext[:250 + 7 + linkLength]
+                        # curDocContext += partNeeded[:250 + docLength + 15 - len(curDocContext)]
+                    htmlPart += 1
+                else:
+                    if len(htmls[htmlPart]) <= 250 + linkLength + 7 - len(curDocContext):
+                        curDocContext += htmls[htmlPart]
+                    else:
+                        curDocContext += htmls[htmlPart]
+                        curDocContext = curDocContext[:250 + linkLength + 7]
+                        # curDocContext += htmls[htmlPart][:250 + docLength + 15 - len(curDocContext)]
+                    htmlPart += 1
+
+            # try:
+            #     if len(htmls) > i + 1:
+            #         curDocContext += htmls[i + 1][:(244 - docLength) // 2]
+            # except Exception as e:
+            #     print(e)
+            #     if len(htmls) > i + 1:
+            #         curDocContext += htmls[i + 1]
 
             curDocContext = curDocContext.replace("<p>", "")
             curDocContext = curDocContext.replace("</p>", "")  # Контекст
+            # print(len(curDocContext), curDocContext)
 
             if link not in docsLinksList:
                 docsLinksList.append(link)
-                curDocContext = [curDocContext]
+                curDocContext = ["..." + curDocContext + "..."]
             else:
                 requestslist[requestslist.index(list(filter(lambda x: x.link == link, requestslist))[0])].context.append(f" ...{curDocContext}...")
+                ind -= 1
+                # print(1)
                 continue
 
             htmlc = str(htmlc[0])
@@ -273,7 +331,7 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 isActiveThen = True
             else:
                 isActiveThen = False
-            print(number)
+            # print(number)
             url1 = f'{self.apiUrlGetDocInfo}{number}'
             headers1 = {
                 'Accept': self.apiAccept,
@@ -283,9 +341,11 @@ class checkDocsRelevance:  # Основной класс с методами д�
 
             try:
                 response1 = requests.get(url1,
-                                     headers=headers1, timeout=30).json()  # Запрос для получения названия документа и сведений об актуальности на сегодня
+                                     headers=headers1, timeout=30)  # Запрос для получения названия документа и сведений об актуальности на сегодня
+                print(response1)
+                response1 = response1.json()
             except Exception as e:
-                logging.error(str(e) + ": Не удалось отправить запрос для проучения информации о документе")
+                logging.error(str(e) + ": Не удалось отправить запрос для получения информации о документе")
 
                 result = {"successStatus": "False", "errorCode": "7", "sourceFileName": self.fileName}
                 with open(f"output/{self.new_name}.json", "w", encoding="utf-8") as f:
@@ -296,13 +356,15 @@ class checkDocsRelevance:  # Основной класс с методами д�
                 return []
             # print(response1)
             curDocName = response1['name']
+            if len(curDocName) > 250:
+                curDocName = curDocName[:250]
             isActiveNow = response1['status']
             if isActiveNow == "Действующие":
                 isActiveNow = True
             else:
                 isActiveNow = False
 
-            a = Document(str(i // 2 + 1), number, link, curDocName, isActiveThen, isActiveNow, curDocContext,
+            a = Document(str(ind), number, link, curDocName, isActiveThen, isActiveNow, curDocContext,
                          self.dateToCheck)  # Создание объекта документа
             requestslist.append(a)
 
@@ -356,7 +418,9 @@ class checkDocsRelevance:  # Основной класс с методами д�
                                 <td>Недействующий</td>{% endif %}{% if doc.isActiveThen %}
                                 <td>Нет</td>{% else %}
                                 <td>Да</td>{% endif %}
-                                <td>...{{doc.context}}...</td>
+                                <td>{% for context in doc.context %}
+                                    {{context}}<br>{% endfor %}
+                                </td>
                             </tr>{% endfor %}
                         </tbody>
                     </table>
@@ -399,4 +463,4 @@ def start(date="2021-10-25"):  # Функция обработки множес�
         obj.create_table()  # Вызов метода для формирования таблицы
 
 
-start()
+start()  # 250 символов в контексте, дату из сведений

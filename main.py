@@ -3,6 +3,7 @@ import requests
 import json
 import datetime as dt
 import re
+import difflib as df
 
 
 # from striprtf.striprtf import rtf_to_text
@@ -137,6 +138,60 @@ import re
 #
 # print(namme, statuss)
 
-a = {"1": {"2": 3}}
+old = ["Настоящее положение о муниципальной пожарной охране (далее - Положение) разработано в соответствии с Федеральным законом от 06 октября 2003 г. N 131-ФЗ \"Об общих принципах организации местного самоуправления в Российской Федерации\", статьей 1.2. Федеральным законом от 21 декабря 1994 г. N 69-ФЗ \"О пожарной безопасности\" и определяет цели, задачи, порядок создания, организацию деятельности, финансовое и материально- техническое обеспечение муниципальной пожарной охраны, порядок ее взаимодействия с другими видами пожарной охраны."]
+new = ["Пастоящее xxx положение о муниципальной пожарной охране (далее - Положение) разработано в соответствии с Федеральным законом от 06 октября 2003 г. N 131-ФЗ \"Об общих принципах организации местного самоуправления в Российской Федерации\", статьей 11.1 Федеральным законом от 21 декабря 1994 г. N 69-ФЗ \"О пожарной безопасности\" и определяет цели, задачи, порядок создания, организацию деятельности, финансовое и материально- техническое обеспечение муниципальной пожарной охраны, порядок ее взаимодействия с другими видами пожарной охраны."]
+diff = list(df.Differ().compare(old, new))
+print(*diff, sep="\n")
+ready = []
+changingIndexes = []
+if len(diff) > 2:
+    diff1 = diff[1].replace("\n", "")[2:]
+    diff2 = diff[3].replace("\n", "")[2:]
+    new1 = new[0]
+    old1 = old[0]
+    old = old[0].split()
+    new = new[0].split()
+    ind = 0
+    curInd = 0
+    for i in old:
+        if diff1[ind:len(i)] == "-" * len(i):
+            if ind >= 30:
+                ready.append(f"Исключить слово \"{i}\" после слов \"...{old1[ind - 30:ind]}...\"")
+            elif len(old1) - 30 >= ind + len(i):
+                ready.append(f"Исключить слово \"{i}\" перед словами\"...{old1[ind + len(i) + 1:ind + len(i) + 30]}...\"")
+            else:
+                ready.append(f"Исключить слово \"{i}\" из предложения \"...{old1}...\"")
+        elif diff1[ind:ind + len(i)] != " " * len(i) and diff1[ind:ind + len(i)] != "":
+            print(i, diff1[ind:ind + len(i)])
+            if ind >= 30:
+                ready.append(f"Изменить слово \"{i}\" после слов \"...{old1[ind - 30:ind]}...\" на \"")
+            elif len(old1) - 30 >= ind + len(i):
+                ready.append(f"Изменить слово \"{i}\" перед словами \"...{old1[ind + len(i) + 1:ind + len(i) + 30]}...\" на \"")
+            else:
+                ready.append(f"Изменить слово \"{i}\" из предложения \"{old1}\" на \"")
 
-print(list(a.items()))
+            changingIndexes.append(len(ready) - 1)
+        ind += len(i) + 1
+        if ind >= len(diff1):
+            break
+
+    ind = 0
+    for i in new:
+        if diff2[ind:ind + len(i)] == "+" * len(i):
+            if ind >= 30:
+                ready.append(f"Добавить слово \"{i}\" после слов \"...{new1[ind - 30:ind ]}...\"")
+            elif len(new1) - 30 >= ind + len(i):
+                ready.append(f"Добавить слово \"{i}\" перед словами\"...{new1[ind + len(i):ind + len(i) + 30]}...\"")
+            else:
+                ready.append(f"Добавить слово \"{i}\" в предложение \"...{new1}...\"")
+        elif diff2[ind:ind + len(i)] != " " * len(i) and diff2[ind:ind + len(i)] != "":
+            try:
+                ready[changingIndexes[curInd]] += i + "\""
+                curInd += 1
+            except Exception as e:
+                print(e)
+        ind += len(i) + 1
+        if ind >= len(diff2):
+            break
+
+print(ready)

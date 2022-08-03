@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9f8ddb4b5bfeb7ba52eaf71444e8ecc2680b74bc9943d7f4562a96ff7407d7ba"
+            "sha256": "1bf5024a6f635de666b2d1d2250fc3baf780abe5d83a9519fbc3971140989bfb"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -177,6 +177,14 @@
             ],
             "version": "==1.15.1"
         },
+        "chardet": {
+            "hashes": [
+                "sha256:0368df2bfd78b5fc20572bb4e9bb7fb53e2c094f60ae9993339e8671d0afb8aa",
+                "sha256:d3e64f022d254183001eccc5db4040520c0f23b1a3f33d6413e099eb7f126557"
+            ],
+            "index": "pypi",
+            "version": "==5.0.0"
+        },
         "charset-normalizer": {
             "hashes": [
                 "sha256:5189b6f22b01957427f35b6a08d9a0bc45b46d3788ef5a92e978433c7a35f8a5",
@@ -192,6 +200,21 @@
             ],
             "markers": "python_version >= '3.7'",
             "version": "==0.6.0"
+        },
+        "defusedxml": {
+            "hashes": [
+                "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69",
+                "sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61"
+            ],
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
+            "version": "==0.7.1"
+        },
+        "ezodf": {
+            "hashes": [
+                "sha256:000da534f689c6d55297a08f9e2ed7eada9810d194d31d164388162fb391122d"
+            ],
+            "index": "pypi",
+            "version": "==0.3.2"
         },
         "fonttools": {
             "extras": [
@@ -358,6 +381,14 @@
             "markers": "python_version >= '3.7'",
             "version": "==2.1.1"
         },
+        "odfpy": {
+            "hashes": [
+                "sha256:db766a6e59c5103212f3cc92ec8dd50a0f3a02790233ed0b52148b70d3c438ec",
+                "sha256:fc3b8d1bc098eba4a0fda865a76d9d1e577c4ceec771426bcb169a82c5e9dfe0"
+            ],
+            "index": "pypi",
+            "version": "==1.4.1"
+        },
         "pdfkit": {
             "hashes": [
                 "sha256:992f821e1e18fc8a0e701ecae24b51a2d598296a180caee0a24c0af181da02a9",
@@ -483,11 +514,11 @@
         },
         "pypdf2": {
             "hashes": [
-                "sha256:2b1a869f239e6d538bc8ce49d92ddde74f5c9323e795adb48a2cb5dfa4832709",
-                "sha256:f52b8af09290cce07750b34e8a7bde501526b59dd1cb4c0a1f21e96ee402c750"
+                "sha256:488c2a3e581e39322f55cdb09e74dfe91402208383cc073224ed5d880e3f4b1b",
+                "sha256:ad40bf56bad7ee9c8adb1de6a4a160a8f2c1b442369ad817584106fb5bde64eb"
             ],
             "index": "pypi",
-            "version": "==2.6.0"
+            "version": "==2.8.1"
         },
         "pyphen": {
             "hashes": [
@@ -682,19 +713,19 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:8298d6d56d39be0e3bc13c1c97d133f9b45d797169a0e11cdd0e0489d786f7ec",
-                "sha256:879ba4d1e89654d9769ce13121e0f94310ea32e8d2f8cf587b77c08bbcdb30d6"
+                "sha256:c33ccba33c819596124764c23a97d25f32b28433ba0dedeb77d873a38722c9bc",
+                "sha256:ea6e8fb210b19d950fab93b60c9009226c63a28808bc8386e05301e25883ac0a"
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5' and python_version < '4'",
-            "version": "==1.26.10"
+            "version": "==1.26.11"
         },
         "weasyprint": {
             "hashes": [
-                "sha256:2c3601639a9554505465deec858e8cd6bcd1b359080afbfe02f83245b3341963",
-                "sha256:6c8e8d0e59839f67ad518b0bf1d4e4054a44d6885c234d9a72285a12ee7d268d"
+                "sha256:27f796abce8edebc9e5b3cff2d095a9fa2b0af5766801431659db51203c70b38",
+                "sha256:86ffa626a7b335d19a7024c0b59a6b3160fd5c0e7a3634500f50a2c35faeafb5"
             ],
             "index": "pypi",
-            "version": "==56.0"
+            "version": "==56.1"
         },
         "webencodings": {
             "hashes": [
